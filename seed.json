@@ -1,0 +1,132 @@
+[
+  {
+    "id": "rec_0001",
+    "description": "Lunch at cafeteria",
+    "amount": 12.5,
+    "currency": "USD",
+    "category": "Food",
+    "date": "2026-10-13",
+    "createdAt": "2026-10-13T12:30:00.000Z",
+    "updatedAt": "2026-10-13T12:30:00.000Z"
+  },
+  {
+    "id": "rec_0002",
+    "description": "Chemistry textbook",
+    "amount": 89.99,
+    "currency": "USD",
+    "category": "Books",
+    "date": "2026-10-12",
+    "createdAt": "2026-10-12T09:15:00.000Z",
+    "updatedAt": "2026-10-12T09:15:00.000Z"
+  },
+  {
+    "id": "rec_0003",
+    "description": "Café 'Latte' & croissant",
+    "amount": 6.75,
+    "currency": "USD",
+    "category": "Food",
+    "date": "2026-10-12",
+    "createdAt": "2026-10-12T08:05:00.000Z",
+    "updatedAt": "2026-10-12T08:05:00.000Z"
+  },
+  {
+    "id": "rec_0004",
+    "description": "Free campus shuttle (donation box)",
+    "amount": 0,
+    "currency": "USD",
+    "category": "Transport",
+    "date": "2026-10-11",
+    "createdAt": "2026-10-11T07:45:00.000Z",
+    "updatedAt": "2026-10-11T07:45:00.000Z"
+  },
+  {
+    "id": "rec_0005",
+    "description": "Bus pass",
+    "amount": 45,
+    "currency": "USD",
+    "category": "Transport",
+    "date": "2026-10-10",
+    "createdAt": "2026-10-10T10:00:00.000Z",
+    "updatedAt": "2026-10-10T10:00:00.000Z"
+  },
+  {
+    "id": "rec_0006",
+    "description": "Coffee coffee run before the exam",
+    "amount": 4.2,
+    "currency": "USD",
+    "category": "Food",
+    "date": "2026-10-09",
+    "createdAt": "2026-10-09T07:20:00.000Z",
+    "updatedAt": "2026-10-09T07:20:00.000Z"
+  },
+  {
+    "id": "rec_0007",
+    "description": "Movie night with friends",
+    "amount": 15,
+    "currency": "USD",
+    "category": "Entertainment",
+    "date": "2026-10-08",
+    "createdAt": "2026-10-08T20:00:00.000Z",
+    "updatedAt": "2026-10-08T20:00:00.000Z"
+  },
+  {
+    "id": "rec_0008",
+    "description": "Train ticket to Berlin",
+    "amount": 23.4,
+    "currency": "EUR",
+    "category": "Transport",
+    "date": "2026-10-07",
+    "createdAt": "2026-10-07T14:10:00.000Z",
+    "updatedAt": "2026-10-07T14:10:00.000Z"
+  },
+  {
+    "id": "rec_0009",
+    "description": "Pen & paper (x2)",
+    "amount": 0.5,
+    "currency": "USD",
+    "category": "Books",
+    "date": "2026-10-05",
+    "createdAt": "2026-10-05T11:00:00.000Z",
+    "updatedAt": "2026-10-05T11:00:00.000Z"
+  },
+  {
+    "id": "rec_0010",
+    "description": "Semester tuition fee",
+    "amount": 2499.99,
+    "currency": "USD",
+    "category": "Fees",
+    "date": "2026-09-01",
+    "createdAt": "2026-09-01T09:00:00.000Z",
+    "updatedAt": "2026-09-01T09:00:00.000Z"
+  },
+  {
+    "id": "rec_0011",
+    "description": "New-year gym sign-up",
+    "amount": 30,
+    "currency": "USD",
+    "category": "Other",
+    "date": "2026-01-01",
+    "createdAt": "2026-01-01T10:00:00.000Z",
+    "updatedAt": "2026-01-01T10:00:00.000Z"
+  },
+  {
+    "id": "rec_0012",
+    "description": "Late-night tea & snacks",
+    "amount": 9.99,
+    "currency": "USD",
+    "category": "Food",
+    "date": "2025-12-31",
+    "createdAt": "2025-12-31T23:10:00.000Z",
+    "updatedAt": "2025-12-31T23:10:00.000Z"
+  },
+  {
+    "id": "rec_0013",
+    "description": "Leap day concert ticket",
+    "amount": 60,
+    "currency": "GBP",
+    "category": "Entertainment",
+    "date": "2024-02-29",
+    "createdAt": "2024-02-29T18:00:00.000Z",
+    "updatedAt": "2024-02-29T18:00:00.000Z"
+  }
+]
