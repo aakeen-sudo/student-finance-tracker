@@ -1,1 +1,294 @@
-<!-- coming soon -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Student Finance Tracker</title>
+  <meta name="description" content="Track student spending, search it with regex and see simple stats.">
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <h1>Student Finance Tracker</h1>
+      <nav aria-label="Main navigation">
+        <ul class="nav-list">
+          <li><a href="#about" data-view="about">About</a></li>
+          <li><a href="#dashboard" data-view="dashboard">Dashboard</a></li>
+          <li><a href="#records" data-view="records">Records</a></li>
+          <li><a href="#add" data-view="add">Add</a></li>
+          <li><a href="#settings" data-view="settings">Settings</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <noscript><p class="banner alert-banner">This app needs JavaScript turned on.</p></noscript>
+
+        <p id="status" class="banner status-banner" role="status" aria-live="polite" aria-atomic="true"></p>
+    <p id="alert" class="banner alert-banner" role="alert" aria-live="assertive" aria-atomic="true"></p>
+    <section id="view-about" class="view" aria-labelledby="about-heading" hidden>
+      <h2 id="about-heading" tabindex="-1">About</h2>
+      <p>A simple tracker for student spending. Add what you buy, pick a category, and the dashboard shows your total, your top category and the last 7 days. You can set a cap and see how much is left.</p>
+      <p>You can search records with regex, sort them, edit them, and import or export a JSON file. Everything is saved in your browser.</p>
+      <h3>Contact</h3>
+      <ul>
+        <!-- TODO: put your own GitHub link and email here -->
+        <li>GitHub: <a href="https://github.com/YOUR-USERNAME">github.com/YOUR-USERNAME</a></li>
+        <li>Email: <a href="mailto:your.name@example.com">your.name@example.com</a></li>
+      </ul>
+    </section>
+    <section id="view-dashboard" class="view" aria-labelledby="dashboard-heading" hidden>
+      <h2 id="dashboard-heading" tabindex="-1">Dashboard</h2>
+
+      <dl class="stat-list">
+        <div class="stat-card">
+          <dt>Total records</dt>
+          <dd id="stat-count">0</dd>
+        </div>
+        <div class="stat-card">
+          <dt>Total spent</dt>
+          <dd id="stat-total">0.00</dd>
+        </div>
+        <div class="stat-card">
+          <dt>Top category</dt>
+          <dd id="stat-top">None yet</dd>
+        </div>
+        <div class="stat-card">
+          <dt>Spending cap</dt>
+          <dd id="stat-cap">Not set</dd>
+        </div>
+      </dl>
+
+      <section class="panel" aria-labelledby="cap-heading">
+        <h3 id="cap-heading">Spending cap</h3>
+        <form id="cap-form" class="cap-form" novalidate>
+          <div class="field">
+            <label for="cap-input">Cap amount in <span class="base-code">USD</span></label>
+            <input id="cap-input" type="text" inputmode="decimal" autocomplete="off" aria-describedby="cap-input-error">
+            <p id="cap-input-error" class="field-error" aria-live="polite"></p>
+          </div>
+          <button class="button" type="submit">Save cap</button>
+        </form>
+        <progress id="cap-progress" max="100" value="0" aria-label="Share of your cap used" hidden></progress>
+        <p id="cap-message-polite" class="cap-message" aria-live="polite"></p>
+        <p id="cap-message-alert" class="cap-message over-cap" role="alert" aria-live="assertive"></p>
+      </section>
+
+      <section class="panel" aria-labelledby="trend-heading">
+        <h3 id="trend-heading">Last 7 days</h3>
+        <p id="trend-empty" class="hint" hidden>No spending in the last 7 days.</p>
+        <ol id="trend-list" class="trend-list" role="list"></ol>
+      </section>
+    </section>
+    <section id="view-records" class="view" aria-labelledby="records-heading" hidden>
+      <h2 id="records-heading" tabindex="-1">Records</h2>
+
+      <div class="toolbar" role="search" aria-label="Search and sort records">
+        <div class="field grow">
+          <label for="search-input">Search with a regex pattern</label>
+          <input id="search-input" type="text" autocomplete="off" spellcheck="false"
+                 placeholder="Example: coffee|tea" aria-describedby="search-message">
+        </div>
+        <div class="field">
+          <label for="sort-select">Sort by</label>
+          <select id="sort-select">
+            <option value="date-desc">Date newest first</option>
+            <option value="date-asc">Date oldest first</option>
+            <option value="description-asc">Description A to Z</option>
+            <option value="description-desc">Description Z to A</option>
+            <option value="amount-desc">Amount high to low</option>
+            <option value="amount-asc">Amount low to high</option>
+          </select>
+        </div>
+        <div class="check">
+          <input id="search-case" type="checkbox" checked>
+          <label for="search-case">Ignore case</label>
+        </div>
+      </div>
+
+      <p id="search-message" class="hint" aria-live="polite"></p>
+
+      <p class="hint">Try an example:</p>
+      <ul class="examples">
+        <li><button type="button" class="button secondary small" data-pattern="\.(?!00\b)\d{2}\b">Has cents (not .00)</button></li>
+        <li><button type="button" class="button secondary small" data-pattern="coffee|tea">Coffee or tea</button></li>
+        <li><button type="button" class="button secondary small" data-pattern="\b(\w+)\s+\1\b">Repeated word</button></li>
+      </ul>
+
+      <p id="records-count" class="hint"></p>
+
+      <div id="records-empty" class="empty-state" hidden>
+        <p id="records-empty-text"></p>
+        <div id="records-empty-actions" class="button-row">
+          <button id="load-sample-empty" type="button" class="button">Load sample data</button>
+          <a class="button secondary" href="#add">Add your first record</a>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table id="records-table">
+          <caption class="visually-hidden">Your spending records</caption>
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Description</th>
+              <th scope="col">Category</th>
+              <th scope="col">Amount</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="records-body"></tbody>
+        </table>
+      </div>
+    </section>
+    <section id="view-add" class="view" aria-labelledby="add-heading" hidden>
+      <h2 id="add-heading" tabindex="-1">Add a record</h2>
+      <p class="hint">All fields are required.</p>
+
+      <form id="add-form" class="panel" novalidate>
+        <div class="form-row">
+          <div class="field">
+            <label for="add-description">Description</label>
+            <input id="add-description" type="text" autocomplete="off"
+                   aria-describedby="add-description-hint add-description-error">
+            <p id="add-description-hint" class="hint">Example: Lunch at cafeteria</p>
+            <p id="add-description-error" class="field-error" aria-live="polite"></p>
+          </div>
+
+          <div class="field">
+            <label for="add-category">Category</label>
+            <input id="add-category" type="text" list="category-list" autocomplete="off"
+                   aria-describedby="add-category-hint add-category-error">
+            <datalist id="category-list"></datalist>
+            <p id="add-category-hint" class="hint">Letters, spaces and hyphens only</p>
+            <p id="add-category-error" class="field-error" aria-live="polite"></p>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field">
+            <label for="add-amount">Amount</label>
+            <input id="add-amount" type="text" inputmode="decimal" autocomplete="off"
+                   aria-describedby="add-amount-hint add-amount-error">
+            <p id="add-amount-hint" class="hint">Example: 12.50</p>
+            <p id="add-amount-error" class="field-error" aria-live="polite"></p>
+          </div>
+
+          <div class="field">
+            <label for="add-currency">Currency</label>
+            <select id="add-currency"></select>
+          </div>
+
+          <div class="field">
+            <label for="add-date">Date</label>
+            <input id="add-date" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD"
+                   aria-describedby="add-date-hint add-date-error">
+            <p id="add-date-hint" class="hint">Format: YYYY-MM-DD</p>
+            <p id="add-date-error" class="field-error" aria-live="polite"></p>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button class="button" type="submit">Add record</button>
+          <button id="clear-form" class="button secondary" type="button">Clear form</button>
+        </div>
+      </form>
+    </section>
+    <section id="view-settings" class="view" aria-labelledby="settings-heading" hidden>
+      <h2 id="settings-heading" tabindex="-1">Settings</h2>
+
+      <form id="settings-form" class="panel" novalidate>
+        <fieldset>
+          <legend>Currencies</legend>
+          <p class="hint"> A rate is how many of that currency equal 1 unit of your base currency.
+          </p>
+
+          <div class="form-row">
+            <div class="field">
+              <label for="set-base">Base currency code</label>
+              <input id="set-base" type="text" maxlength="3" autocomplete="off" aria-describedby="set-base-error">
+              <p id="set-base-error" class="field-error" aria-live="polite"></p>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label for="set-code-1">Second currency code</label>
+              <input id="set-code-1" type="text" maxlength="3" autocomplete="off" aria-describedby="set-code-1-error">
+              <p id="set-code-1-error" class="field-error" aria-live="polite"></p>
+            </div>
+            <div class="field">
+              <label for="set-rate-1">Rate for second currency</label>
+              <input id="set-rate-1" type="text" inputmode="decimal" autocomplete="off" aria-describedby="set-rate-1-error">
+              <p id="set-rate-1-error" class="field-error" aria-live="polite"></p>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label for="set-code-2">Third currency code</label>
+              <input id="set-code-2" type="text" maxlength="3" autocomplete="off" aria-describedby="set-code-2-error">
+              <p id="set-code-2-error" class="field-error" aria-live="polite"></p>
+            </div>
+            <div class="field">
+              <label for="set-rate-2">Rate for third currency</label>
+              <input id="set-rate-2" type="text" inputmode="decimal" autocomplete="off" aria-describedby="set-rate-2-error">
+              <p id="set-rate-2-error" class="field-error" aria-live="polite"></p>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Categories</legend>
+          <div class="field">
+            <label for="set-categories">Categories separated by commas</label>
+            <input id="set-categories" type="text" autocomplete="off" aria-describedby="set-categories-hint set-categories-error">
+            <p id="set-categories-hint" class="hint">Letters, spaces and hyphens only</p>
+            <p id="set-categories-error" class="field-error" aria-live="polite"></p>
+          </div>
+        </fieldset>
+
+        <div class="button-row">
+          <button class="button" type="submit">Save settings</button>
+        </div>
+      </form>
+
+      <section class="panel" aria-labelledby="data-heading">
+        <h3 id="data-heading">Your data</h3>
+        <p class="hint">Export your records, or import a JSON file to replace them.</p>
+        <div class="button-row">
+          <button id="export-button" type="button" class="button">Export JSON</button>
+          <button id="load-sample" type="button" class="button secondary">Load sample data</button>
+          <button id="clear-button" type="button" class="button danger">Delete all records</button>
+        </div>
+        <div class="field import-field">
+          <label for="import-file">Import a JSON file</label>
+          <input id="import-file" type="file" accept=".json,application/json">
+        </div>
+        <div id="import-message" class="import-message" aria-live="polite"></div>
+      </section>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Student Finance Tracker. Data stays in your browser.</p>
+  </footer>
+
+    <dialog id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-message">
+    <form method="dialog">
+      <h2 id="confirm-title">Please confirm</h2>
+      <p id="confirm-message"></p>
+      <div class="button-row">
+        <button class="button secondary" value="cancel" autofocus>Cancel</button>
+        <button id="confirm-yes" class="button danger" value="yes">Confirm</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="scripts/main.js"></script>
+</body>
+</html>
