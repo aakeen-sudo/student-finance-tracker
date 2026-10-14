@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tests</title>
+  <link rel="stylesheet" href="styles/main.css">
+  <style>
+    .test-list { list-style: none; padding: 0; }
+    .test-list li { padding: 0.35rem 0.6rem; margin-bottom: 0.3rem; border-radius: 6px; }
+    .test-list .pass { background: #d8f0e6; color: #0b4a3d; }
+    .test-list .fail { background: #fde7e4; color: #7d1d14; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <main id="main">
+    <h1>Regex and search tests</h1>
+    <p><a href="index.html">Back to the app</a></p>
+    <p id="summary" role="status" class="banner status-banner"></p>
+    <ul id="results" class="test-list"></ul>
+  </main>
+
+  <script type="module">
+    import {
+      patterns, isRealDate, checkDescription, checkAmount, checkDate, checkCategory,
+      checkCap, checkCurrencyCode, checkRate, validateRecordFields, validateImport
+    } from './scripts/validators.js';
+    import { compileRegex, recordMatches, filterRecords, highlight } from './scripts/search.js';
+
+    const resultsList = document.getElementById('results');
+    let passed = 0;
+    let failed = 0;
+
+    // Compares what we got with what we expected and shows the result
+    function check(name, actual, expected) {
+      const ok = actual === expected;
+      const item = document.createElement('li');
+      item.className = ok ? 'pass' : 'fail';
+      item.textContent = (ok ? 'PASS: ' : 'FAIL: ') + name +
+        (ok ? '' : ' (got ' + actual + ', expected ' + expected + ')');
+      resultsList.append(item);
+      if (ok) passed++; else failed++;
+    }
+
+    // true when the checker returned an error message
+    function hasError(message) {
+      return message !== '';
+    }
+
+    // ----- Description rules -----
+    check('description: normal text is fine', hasError(checkDescription('Lunch at cafeteria')), false);
+    check('description: empty is rejected', hasError(checkDescription('')), true);
+    check('description: leading space is rejected', hasError(checkDescription(' Lunch')), true);
+    check('description: trailing space is rejected', hasError(checkDescription('Lunch ')), true);
+    check('description: double space is rejected', hasError(checkDescription('Lunch  at cafe')), true);
+    check('description: repeated word is rejected (back-reference)', hasError(checkDescription('the the book')), true);
+    check('description: repeated word ignores case', hasError(checkDescription('Coffee coffee')), true);
+    check('description: numbers only is rejected (lookahead)', hasError(checkDescription('12345')), true);
+    check('description: accented letters are fine', hasError(checkDescription('Café latte')), false);
+
+    // ----- Amount rules -----
+    check('amount: 12.50 is fine', hasError(checkAmount('12.50')), false);
+    check('amount: 0 is fine', hasError(checkAmount('0')), false);
+    check('amount: 7 is fine', hasError(checkAmount('7')), false);
+    check('amount: 007 is rejected', hasError(checkAmount('007')), true);
+    check('amount: 12.555 is rejected', hasError(checkAmount('12.555')), true);
+    check('amount: -5 is rejected', hasError(checkAmount('-5')), true);
+    check('amount: 12. is rejected', hasError(checkAmount('12.')), true);
+    check('amount: letters are rejected', hasError(checkAmount('abc')), true);
+    check('amount: empty is rejected', hasError(checkAmount('')), true);
+    check('cap: empty is allowed', hasError(checkCap('')), false);
+    check('cap: 300.50 is fine', hasError(checkCap('300.50')), false);
+
+    // ----- Date rules -----
+    check('date: 2026-10-13 is fine', hasError(checkDate('2026-10-13')), false);
+    check('date: leap day 2024-02-29 is fine', hasError(checkDate('2024-02-29')), false);
+    check('date: 2026-02-29 is rejected (not a leap year)', hasError(checkDate('2026-02-29')), true);
+    check('date: month 13 is rejected', hasError(checkDate('2026-13-01')), true);
+    check('date: 26-10-13 is rejected', hasError(checkDate('26-10-13')), true);
+    check('date: 2026-04-31 is rejected', hasError(checkDate('2026-04-31')), true);
+    check('isRealDate: 2026-12-31 is real', isRealDate('2026-12-31'), true);
+
+    // ----- Category rules -----
+    check('category: Food is fine', hasError(checkCategory('Food')), false);
+    check('category: Eating-out is fine', hasError(checkCategory('Eating-out')), false);
+    check('category: "Study Group" is fine', hasError(checkCategory('Study Group')), false);
+    check('category: Food2 is rejected', hasError(checkCategory('Food2')), true);
+    check('category: leading space is rejected', hasError(checkCategory(' Food')), true);
+    check('category: double space is rejected', hasError(checkCategory('A  B')), true);
+
+    // ----- Currency settings rules -----
+    check('currency code: USD is fine', hasError(checkCurrencyCode('USD')), false);
+    check('currency code: usd is rejected', hasError(checkCurrencyCode('usd')), true);
+    check('currency code: US is rejected', hasError(checkCurrencyCode('US')), true);
+    check('rate: 0.92 is fine', hasError(checkRate('0.92')), false);
+    check('rate: 0 is rejected (lookahead)', hasError(checkRate('0')), true);
+    check('rate: 0.00 is rejected (lookahead)', hasError(checkRate('0.00')), true);
+    check('rate: 1.23456 is rejected (5 decimals)', hasError(checkRate('1.23456')), true);
+
+    // ----- Raw patterns (the ones used in the search examples) -----
+    check('pattern duplicateWord matches "Coffee coffee"', patterns.duplicateWord.test('Coffee coffee'), true);
+    check('pattern duplicateWord skips "Coffee tea"', patterns.duplicateWord.test('Coffee tea'), false);
+    check('search example: cents pattern matches 12.50', /\.(?!00\b)\d{2}\b/.test('12.50'), true);
+    check('search example: cents pattern skips 45.00', /\.(?!00\b)\d{2}\b/.test('45.00'), false);
+
+    // ----- Whole-record check -----
+    const goodErrors = validateRecordFields({
+      description: 'Bus pass', amount: '45', category: 'Transport', date: '2026-10-10'
+    });
+    check('record: good record has no errors', Object.keys(goodErrors).length, 0);
+
+    const badErrors = validateRecordFields({
+      description: ' ', amount: 'x', category: '1', date: 'nope'
+    });
+    check('record: bad record has 4 errors', Object.keys(badErrors).length, 4);
+
+    // ----- Search -----
+    check('compileRegex: empty text gives null', compileRegex('', true), null);
+    check('compileRegex: broken pattern gives null', compileRegex('[abc', true), null);
+    check('compileRegex: 101 characters gives null', compileRegex('a'.repeat(101), true), null);
+    check('compileRegex: good pattern gives a RegExp', compileRegex('coffee|tea', true) instanceof RegExp, true);
+    check('compileRegex: ignore-case flag is on', compileRegex('tea', true).flags, 'i');
+    check('compileRegex: ignore-case off gives no flags', compileRegex('tea', false).flags, '');
+
+    const sample = [
+      { id: 'a', description: 'Morning coffee', category: 'Food', date: '2026-10-01', amount: 4.5 },
+      { id: 'b', description: 'Bus pass', category: 'Transport', date: '2026-10-02', amount: 45 },
+      { id: 'c', description: 'Green TEA', category: 'Food', date: '2026-10-03', amount: 3 }
+    ];
+    check('filter: coffee|tea finds 2 records', filterRecords(sample, compileRegex('coffee|tea', true)).length, 2);
+    check('filter: case-sensitive "tea" finds 0 records', filterRecords(sample, compileRegex('tea', false)).length, 0);
+    check('filter: cents pattern finds only the 4.50 record', filterRecords(sample, compileRegex('\\.(?!00\\b)\\d{2}\\b', true)).length, 1);
+    check('filter: no regex returns everything', filterRecords(sample, null).length, 3);
+    check('recordMatches: finds the date', recordMatches(sample[1], /2026-10-02/), true);
+
+    // ----- Highlight -----
+    const box = document.createElement('div');
+    box.append(highlight('Coffee and tea', /coffee|tea/i));
+    check('highlight: wraps 2 matches in <mark>', box.querySelectorAll('mark').length, 2);
+    check('highlight: keeps the full text', box.textContent, 'Coffee and tea');
+
+    const safeBox = document.createElement('div');
+    safeBox.append(highlight('<b>hi</b>', /hi/));
+    check('highlight: HTML in text is not turned into real tags', safeBox.querySelector('b'), null);
+
+    const emptyMatchBox = document.createElement('div');
+    emptyMatchBox.append(highlight('abc', /x*/));
+    check('highlight: pattern that matches nothing does not hang', emptyMatchBox.textContent, 'abc');
+
+    // ----- JSON import checks -----
+    const goodImport = [{
+      id: 'x1', description: 'Test', amount: 5, category: 'Food', date: '2026-10-01',
+      createdAt: '2026-10-01T00:00:00.000Z', updatedAt: '2026-10-01T00:00:00.000Z'
+    }];
+    check('import: good file is accepted', validateImport(goodImport, 'USD').ok, true);
+    check('import: missing currency becomes the base currency', validateImport(goodImport, 'USD').records[0].currency, 'USD');
+    check('import: an object (not a list) is rejected', validateImport({}, 'USD').ok, false);
+    check('import: empty list is rejected', validateImport([], 'USD').ok, false);
+    check('import: negative amount is rejected',
+      validateImport([Object.assign({}, goodImport[0], { amount: -1 })], 'USD').ok, false);
+    check('import: text amount is rejected',
+      validateImport([Object.assign({}, goodImport[0], { amount: '5' })], 'USD').ok, false);
+    check('import: bad date is rejected',
+      validateImport([Object.assign({}, goodImport[0], { date: '2026-02-30' })], 'USD').ok, false);
+    check('import: duplicate ids are rejected',
+      validateImport([goodImport[0], goodImport[0]], 'USD').ok, false);
+
+    // ----- The seed file itself must pass the import check -----
+    try {
+      const response = await fetch('seed.json');
+      const seed = await response.json();
+      const seedResult = validateImport(seed, 'USD');
+      check('seed.json passes the import check', seedResult.ok, true);
+      check('seed.json has at least 10 records', seed.length >= 10, true);
+    } catch (error) {
+      check('seed.json could be loaded (use a local server or GitHub Pages)', false, true);
+    }
+
+    // ----- Summary -----
+    const summary = document.getElementById('summary');
+    summary.textContent = passed + ' passed, ' + failed + ' failed.';
+    if (failed > 0) {
+      summary.className = 'banner alert-banner';
+    }
+  </script>
+</body>
+</html>
