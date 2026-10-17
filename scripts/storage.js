@@ -5,10 +5,15 @@ const SETTINGS_KEY = 'sft:settings';
 
 export function loadRecords() {
   try {
-    const text = localStorage.getItem(RECORDS_KEY);
-    if (!text) return [];
+    const text = localStorage.getItem('sft:records');
+   if (!text) {
+      return [];
+   }
     const data = JSON.parse(text);
-    return Array.isArray(data) ? data : [];
+    if (Array.isArray(data)) {
+      return data;
+    }
+    return [];
   } catch (error) {
     return [];
   }
@@ -16,7 +21,7 @@ export function loadRecords() {
 
 export function saveRecords(records) {
   try {
-    localStorage.setItem(RECORDS_KEY, JSON.stringify(records));
+    localStorage.setItem('sft:records', JSON.stringify(records));
     return true;
   } catch (error) {
     return false;
