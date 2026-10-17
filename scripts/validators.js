@@ -55,23 +55,23 @@ export function checkDescription(text) {
 
 export function checkAmount(text) {
   if (text === '') {
-    return 'Amount is required.';
+    return 'Please enter an amount.';
   }
   if (!patterns.amount.test(text)) {
-    return 'Enter a number like 12 or 12.50 with up to 2 decimals.';
+    return 'Enter a number with up to 2 decimals.';
   }
   return '';
 }
 
 export function checkDate(text) {
   if (text === '') {
-    return 'Date is required.';
+    return 'Please enter a date.';
   }
   if (!patterns.date.test(text)) {
-    return 'Use the format YYYY-MM-DD, for example 2026-10-13.';
+    return 'Use the format YYYY-MM-DD.';
   }
   if (!isRealDate(text)) {
-    return 'That date does not exist on the calendar.';
+    return 'That date does not exist.';
   }
   return '';
 }
