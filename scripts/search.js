@@ -1,9 +1,12 @@
 // search.js - regex search and highlight
 
 export function compileRegex(input, ignoreCase) {
-  if (!input) return null;
-  if (input.length > 100) return null;
-
+  if (!input) {
+    return null;
+  }
+  if (input.length > 100) {
+    return null;
+  }
   try {
     return new RegExp(input, ignoreCase ? 'i' : '');
   } catch (error) {
@@ -27,7 +30,8 @@ export function recordMatches(record, re) {
 }
 
 export function filterRecords(records, re) {
-  if (!re) return records;
+  if (!re) {
+    return records;
   return records.filter(function (record) {
     return recordMatches(record, re);
   });
