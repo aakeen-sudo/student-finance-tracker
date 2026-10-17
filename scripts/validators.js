@@ -36,19 +36,19 @@ export function isRealDate(text) {
 
 export function checkDescription(text) {
   if (text.trim() === '') {
-    return 'Description is required.';
+    return 'The description can not be empty.';
   }
   if (!patterns.noEdgeSpaces.test(text)) {
-    return 'Remove the spaces at the start or end.';
+    return 'No spaces before or after the text, please.';
   }
   if (patterns.doubleSpaces.test(text)) {
-    return 'Use only one space between words.';
+    return 'Two spaces in a row are not allowed.';
   }
   if (!patterns.hasLetter.test(text)) {
-    return 'Description needs at least one letter.';
+    return 'Numbers alone are not enough. Add a word.';
   }
   if (patterns.duplicateWord.test(text)) {
-    return 'A word is repeated twice in a row.';
+    return 'A word appears two times in a row. Fix it please.';
   }
   return '';
 }
@@ -78,7 +78,7 @@ export function checkDate(text) {
 
 export function checkCategory(text) {
   if (text === '') {
-    return 'Category is required.';
+    return 'Please enter a category.';
   }
   if (!patterns.category.test(text)) {
     return 'Use letters, spaces and hyphens only.';
